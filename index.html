@@ -200,7 +200,7 @@
         <div class="status-dot" id="statusDot"></div>
         <span id="statusText">Checking backend…</span>
       </div>
-      <div class="header-badge">THESIS · 2026</div>
+      <div class="header-badge">THESIS · 2025</div>
     </div>
   </header>
 
@@ -233,8 +233,8 @@
       </svg>
     </div>
     <div class="hero-label">Retinal OCT Analysis System</div>
-    <h1 class="hero-title">Discover what the  <br/><em>human eye</em> can’t see</h1>
-    <p class="hero-sub">Upload a retinal OCT scan</p>
+    <h1 class="hero-title">See what the<br/><em>naked eye</em> cannot</h1>
+    <p class="hero-sub">Upload a retinal OCT scan. Our AI pipeline — DenseNet121 feature extraction + SVM — trained on 24,000 images detects 8 classes of eye disease with 95.86% accuracy.</p>
     <div class="stats-bar">
       <div class="stat"><span class="stat-num">95.86%</span><span class="stat-lbl">Accuracy</span></div>
       <div class="stat"><span class="stat-num">24,000</span><span class="stat-lbl">Training images</span></div>
@@ -262,9 +262,9 @@
         Choose File
       </div>
       <div class="disease-tags">
-        <span class="dtag">CNV</span><span class="dtag">DME</span><span class="dtag">DRUSEN</span>
-        <span class="dtag">NORMAL</span><span class="dtag">MH</span><span class="dtag">CSR</span>
-        <span class="dtag">AMD</span><span class="dtag">DR</span>
+        <span class="dtag">AMD</span><span class="dtag">CNV</span><span class="dtag">CSR</span>
+        <span class="dtag">DME</span><span class="dtag">DR</span><span class="dtag">DRUSEN</span>
+        <span class="dtag">MH</span><span class="dtag">NORMAL</span>
       </div>
     </div>
 
@@ -324,7 +324,7 @@
   //    Deploy করার পর Render dashboard থেকে পাবে
   //    Example: "https://ocularai-backend.onrender.com"
   // ──────────────────────────────────────────────────
-  const BACKEND_URL = "https://ocularai-backend-1.onrender.com";
+  const BACKEND_URL = "https://YOUR-APP-NAME.onrender.com";
 
   const LOADING_STEPS = [
     "Running DenseNet121 feature extraction",
