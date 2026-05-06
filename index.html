@@ -457,6 +457,35 @@
       <button class="btn-new" onclick="resetAll()">↑ Try again</button>`;
   }
 
+  function buildShapSection(shapValues) {
+    const maxAbs = Math.max(...shapValues.map(s => s.abs));
+    const rows = shapValues.map(sv => {
+      const pct   = Math.round((sv.abs / maxAbs) * 100);
+      const isPos = sv.value >= 0;
+      const bar   = isPos
+        ? '<div style="position:absolute;left:50%;width:' + (pct/2) + '%;height:12px;background:#F0997B;border-radius:0 3px 3px 0;"></div>'
+        : '<div style="position:absolute;right:50%;width:' + (pct/2) + '%;height:12px;background:var(--accent2);border-radius:3px 0 0 3px;"></div>';
+      return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+        + '<div style="font-family:monospace;font-size:11px;color:var(--text2);width:48px;text-align:right;flex-shrink:0;">' + sv.feature + '</div>'
+        + '<div style="flex:1;position:relative;height:18px;display:flex;align-items:center;">'
+        + '<div style="position:absolute;left:50%;width:1px;height:100%;background:var(--border2);"></div>'
+        + bar
+        + '</div>'
+        + '<div style="font-family:monospace;font-size:11px;width:52px;color:' + (isPos ? '#F0997B' : 'var(--accent)') + ';">'
+        + (isPos ? '+' : '') + sv.value.toFixed(3)
+        + '</div></div>';
+    }).join('');
+
+    return '<div class="diff-section" style="padding:20px 32px;border-top:1px solid var(--border);">'
+      + '<div class="diff-title" style="margin-bottom:14px;">SHAP XAI — কোন features এই prediction এ সবচেয়ে বেশি influence করেছে</div>'
+      + '<div style="display:flex;gap:6px;font-size:11px;color:var(--text3);margin-bottom:14px;">'
+      + '<span style="display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-block;width:10px;height:10px;background:#F0997B;border-radius:2px;"></span>Positive — এই disease বলতে সাহায্য করেছে</span>'
+      + '<span style="margin-left:12px;display:inline-flex;align-items:center;gap:4px;"><span style="display:inline-block;width:10px;height:10px;background:var(--accent2);border-radius:2px;"></span>Negative — এই disease এর বিরুদ্ধে কাজ করেছে</span>'
+      + '</div>'
+      + rows
+      + '</div>';
+  }
+
   function showResult(r) {
     const rs = document.getElementById('resultSection');
     rs.style.display = 'block';
@@ -468,91 +497,41 @@
     const sconf = Math.round((r.secondary_confidence || 0) * 100);
     const other = Math.max(0, 100 - conf - sconf);
 
-    rs.innerHTML = `
-      <div class="result-card">
-        <div class="result-header">
-          <div>
-            <div class="result-disease-label">Primary diagnosis</div>
-            <div class="result-disease-name">${r.disease}</div>
-            <div class="result-disease-full">${r.full_name || ''}</div>
-          </div>
-          <div class="severity-pill ${sevClass}">
-            <span class="severity-dot"></span>${sevLabel}
-          </div>
-        </div>
+    const diffSection = r.secondary
+      ? '<div class="diff-section">'
+        + '<div class="diff-title">Differential probability breakdown</div>'
+        + '<div class="diff-row"><div class="diff-name">' + r.disease + '</div><div class="diff-bar-bg"><div class="diff-bar-fill" id="df1" style="background:var(--accent)"></div></div><div class="diff-pct">' + conf + '%</div></div>'
+        + '<div class="diff-row"><div class="diff-name">' + r.secondary + '</div><div class="diff-bar-bg"><div class="diff-bar-fill" id="df2"></div></div><div class="diff-pct">' + sconf + '%</div></div>'
+        + '<div class="diff-row"><div class="diff-name">Others</div><div class="diff-bar-bg"><div class="diff-bar-fill" id="df3"></div></div><div class="diff-pct">' + other + '%</div></div>'
+        + '</div>'
+      : '';
 
-        <div class="result-body">
-          <div class="conf-section">
-            <div class="conf-label">
-              <span class="conf-key">Model confidence</span>
-              <span class="conf-val">${conf}%</span>
-            </div>
-            <div class="conf-bar-bg"><div class="conf-bar-fill" id="confFill"></div></div>
-          </div>
+    const shapSection = (r.shap_values && r.shap_values.length > 0)
+      ? buildShapSection(r.shap_values)
+      : '';
 
-          <div class="desc-text">${r.description || ''}</div>
-        </div>
-
-        ${r.secondary ? `
-        <div class="diff-section">
-          <div class="diff-title">Differential probability breakdown</div>
-          <div class="diff-row">
-            <div class="diff-name">${r.disease}</div>
-            <div class="diff-bar-bg"><div class="diff-bar-fill" id="df1" style="background:var(--accent)"></div></div>
-            <div class="diff-pct">${conf}%</div>
-          </div>
-          <div class="diff-row">
-            <div class="diff-name">${r.secondary}</div>
-            <div class="diff-bar-bg"><div class="diff-bar-fill" id="df2"></div></div>
-            <div class="diff-pct">${sconf}%</div>
-          </div>
-          <div class="diff-row">
-            <div class="diff-name">Others</div>
-            <div class="diff-bar-bg"><div class="diff-bar-fill" id="df3"></div></div>
-            <div class="diff-pct">${other}%</div>
-          </div>
-        </div>` : ''}
-
-        ${r.shap_values && r.shap_values.length > 0 ? `
-        <div class="diff-section" style="padding:20px 32px; border-top:1px solid var(--border);">
-          <div class="diff-title" style="margin-bottom:14px;">
-            SHAP XAI — কোন features এই prediction এ সবচেয়ে বেশি influence করেছে
-          </div>
-          <div style="display:flex;gap:6px;font-size:11px;color:var(--text3);margin-bottom:14px;">
-            <span style="display:inline-flex;align-items:center;gap:4px;">
-              <span style="display:inline-block;width:10px;height:10px;background:#F0997B;border-radius:2px;"></span>
-              Positive — এই disease বলতে সাহায্য করেছে
-            </span>
-            <span style="margin-left:12px;display:inline-flex;align-items:center;gap:4px;">
-              <span style="display:inline-block;width:10px;height:10px;background:var(--accent2);border-radius:2px;"></span>
-              Negative — এই disease এর বিরুদ্ধে কাজ করেছে
-            </span>
-          </div>
-          ${r.shap_values.map(sv => {
-            const maxAbs = Math.max(...r.shap_values.map(s => s.abs));
-            const pct = Math.round((sv.abs / maxAbs) * 100);
-            const isPos = sv.value >= 0;
-            return \`
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <div style="font-family:monospace;font-size:11px;color:var(--text2);width:48px;text-align:right;flex-shrink:0;">\${sv.feature}</div>
-              <div style="flex:1;position:relative;height:18px;display:flex;align-items:center;">
-                <div style="position:absolute;left:50%;width:1px;height:100%;background:var(--border2);"></div>
-                \${isPos
-                  ? \`<div style="position:absolute;left:50%;width:\${pct/2}%;height:12px;background:#F0997B;border-radius:0 3px 3px 0;"></div>\`
-                  : \`<div style="position:absolute;right:50%;width:\${pct/2}%;height:12px;background:var(--accent2);border-radius:3px 0 0 3px;"></div>\`
-                }
-              </div>
-              <div style="font-family:monospace;font-size:11px;width:52px;color:\${isPos ? '#F0997B' : 'var(--accent)'};">\${isPos ? '+' : ''}\${sv.value.toFixed(3)}</div>
-            </div>\`
-          }).join('')}
-        </div>` : ''}
-
-        <div class="disclaimer">
-          ⚠ Research prototype only. Not intended for clinical diagnosis.
-          Always consult a qualified ophthalmologist.
-        </div>
-      </div>
-      <button class="btn-new" onclick="resetAll()">↑ Analyze another image</button>`;
+    rs.innerHTML =
+      '<div class="result-card">'
+      + '<div class="result-header">'
+      + '<div>'
+      + '<div class="result-disease-label">Primary diagnosis</div>'
+      + '<div class="result-disease-name">' + r.disease + '</div>'
+      + '<div class="result-disease-full">' + (r.full_name || '') + '</div>'
+      + '</div>'
+      + '<div class="severity-pill ' + sevClass + '"><span class="severity-dot"></span>' + sevLabel + '</div>'
+      + '</div>'
+      + '<div class="result-body">'
+      + '<div class="conf-section">'
+      + '<div class="conf-label"><span class="conf-key">Model confidence</span><span class="conf-val">' + conf + '%</span></div>'
+      + '<div class="conf-bar-bg"><div class="conf-bar-fill" id="confFill"></div></div>'
+      + '</div>'
+      + '<div class="desc-text">' + (r.description || '') + '</div>'
+      + '</div>'
+      + diffSection
+      + shapSection
+      + '<div class="disclaimer">⚠ Research prototype only. Not intended for clinical diagnosis. Always consult a qualified ophthalmologist.</div>'
+      + '</div>'
+      + '<button class="btn-new" onclick="resetAll()">↑ Analyze another image</button>';
 
     requestAnimationFrame(() => setTimeout(() => {
       const cf = document.getElementById('confFill'); if (cf) cf.style.width = conf + '%';
