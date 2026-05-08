@@ -878,20 +878,35 @@
       document.getElementById("loadingStep").textContent = STEPS[stepIdx];
     }, 1800);
 
+    await doPredict(0);
+  }
+
+  async function doPredict(attempt) {
+    var MAX_RETRIES = 10;
+    var RETRY_DELAY = 12000; // 12s between retries
+
     try {
       var formData = new FormData();
       formData.append("file", fileObj);
       var res = await fetch(BACKEND_URL + "/predict", {method: "POST", body: formData});
 
-      clearInterval(stepInterval);
-      document.getElementById("analyzeBtn").disabled = false;
-      document.getElementById("loadingSection").style.display = "none";
-
+      // 503 = model still loading → retry automatically
       if (res.status === 503) {
-        var err503 = await res.json().catch(function(){ return {}; });
-        showError("⏳ " + (err503.message || "Models are still loading. Please wait 1-2 minutes and try again."));
+        if (attempt < MAX_RETRIES) {
+          var remaining = MAX_RETRIES - attempt;
+          document.getElementById("loadingStep").textContent =
+            "Model loading... retry " + (attempt+1) + "/" + MAX_RETRIES + " in 12s";
+          await new Promise(function(r){ setTimeout(r, RETRY_DELAY); });
+          await doPredict(attempt + 1);
+        } else {
+          _finishLoading();
+          showError("⏳ Model is taking too long to load. Please refresh the page and try again in a few minutes.");
+        }
         return;
       }
+
+      _finishLoading();
+
       if (!res.ok) {
         var err = await res.json().catch(function(){ return {detail: "Unknown error"}; });
         showError(err.detail || "HTTP " + res.status);
@@ -899,12 +914,17 @@
       }
       var result = await res.json();
       showResult(result);
+
     } catch(err) {
-      clearInterval(stepInterval);
-      document.getElementById("analyzeBtn").disabled = false;
-      document.getElementById("loadingSection").style.display = "none";
+      _finishLoading();
       showError("Could not reach backend. Make sure it is running.");
     }
+  }
+
+  function _finishLoading() {
+    clearInterval(stepInterval);
+    document.getElementById("analyzeBtn").disabled = false;
+    document.getElementById("loadingSection").style.display = "none";
   }
 
   function showError(msg) {
