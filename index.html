@@ -505,7 +505,6 @@
 
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -995,10 +994,10 @@
         rows2 += buildShapBar(r.shap_values[j], maxAbs);
       }
       shapHtml = '<div class="shap-section">' +
-        '<div class="shap-title">SVM Feature Importance (XAI)</div>' +
+        '<div class="shap-title">Feature Importance (SHAP XAI)</div>' +
         '<div class="shap-legend">' +
-          '<span><span style="display:inline-block;width:10px;height:10px;background:#F0997B;border-radius:2px;"></span> Positive — এই disease বলতে সাহায্য করেছে</span>' +
-          '<span><span style="display:inline-block;width:10px;height:10px;background:var(--accent2);border-radius:2px;"></span> Negative — এর বিরুদ্ধে কাজ করেছে</span>' +
+          '<span><span style="display:inline-block;width:10px;height:10px;background:#F0997B;border-radius:2px;"></span> Positive</span>' +
+          '<span><span style="display:inline-block;width:10px;height:10px;background:var(--accent2);border-radius:2px;"></span> Negative</span>' +
         '</div>' + rows2 + '</div>';
     }
 
